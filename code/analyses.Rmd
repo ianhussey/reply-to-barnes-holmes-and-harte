@@ -1,0 +1,131 @@
+---
+title: "Systematic review of authors of IRAP studies"
+author: "Ian Hussey"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output:
+  html_document:
+    code_folding: hide
+    highlight: haddock
+    theme: flatly
+    toc: yes
+    toc_float: yes
+---
+
+```{r, include=FALSE}
+knitr::opts_chunk$set(message = FALSE,
+                      warning = FALSE)
+```
+
+# Get data
+
+```{r}
+
+# dependencies
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+library(janitor)
+
+# get data
+data_review <- read_csv("../data/combined results - manually tidied - authorship annotation.csv") %>%
+  janitor::clean_names()
+
+```
+
+# How many IRAP articles
+
+N articles
+
+```{r}
+
+data_review %>%
+  distinct(author, title) %>%
+  summarize(n_publications = n()) %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE)
+
+```
+
+# Who is writing them
+
+## N author
+
+```{r}
+
+data_author <- data_review %>%
+  distinct(author, title) %>%
+  select(-title) %>%
+  separate(author, 
+           into = c("author1", "author2", "author3", "author4", 
+                    "author5", "author6", "author7", "author8", 
+                    "author9", "author10"), 
+           sep = "; ", 
+           remove = FALSE) 
+
+data_author_long <- data_author %>%
+  rename(author_list = author) %>%
+  pivot_longer(cols = c("author1", "author2", "author3", "author4", 
+                        "author5", "author6", "author7", "author8", 
+                        "author9", "author10"),
+               names_to = "position", 
+               values_to = "author") %>%
+  na.omit()
+
+data_author_long %>%
+  distinct(author) %>%
+  summarize(total_n_author = n()) %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE)
+
+data_author_long %>%
+  count(author) %>%
+  summarize(median_authorships = median(n),
+            mad_authorships = mad(n),
+            min_authorships = min(n),
+            max_authorships = max(n)) %>%
+  gather() %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE)
+
+```
+
+## Frequent IRAP authors
+
+```{r}
+
+total_papers <- data_review %>% distinct(author, title) %>% nrow()
+
+ranked_authors <- data_author_long %>%
+  group_by(author) %>%
+  summarize(n_papers = n()) %>%
+  ungroup() %>%
+  mutate(proportion_all_papers = janitor::round_half_up(n_papers/total_papers, 2)) %>%
+  arrange(desc(n_papers)) %>%
+  rownames_to_column(var = "rank") %>%
+  select(rank, author, n_papers, proportion_all_papers) %>%
+  mutate(BH_lab = ifelse(author %in% c("de Rose, Julio C.",
+                                       "Bortoloti, Renato",
+                                       "Drake, Chad E.",
+                                       "Farrell, Lynn"), FALSE, TRUE))
+
+ranked_authors %>%
+  filter(n_papers >= 5) %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE)
+
+```
+
+## Proportion of publications coauthored by DBH or his current or former students
+
+```{r}
+
+data_review |>
+  summarize(n_publications_involving_authors_from_bh_lab = sum(coauthored_by_bh_or_students),
+            percent_publications_involving_authors_from_bh_lab = round_half_up(mean(coauthored_by_bh_or_students), 2)*100) %>%
+  gather() %>%
+  kable() %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE)
+
+```
+
+
