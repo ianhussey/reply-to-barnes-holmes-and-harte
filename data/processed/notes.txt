@@ -1,0 +1,1 @@
+"combined results - manually tidied.csv" was taken from the original systematic review (https://osf.io/tna8s/) and annotated with additional columns on the relationship between authors to make "combined results - manually tidied - authorship annotation.csv"
