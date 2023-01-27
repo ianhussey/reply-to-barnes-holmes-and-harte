@@ -27,8 +27,8 @@ library(kableExtra)
 library(janitor)
 
 # get data
-data_review <- read_csv("../../data/processed/combined results - manually tidied - authorship annotation.csv") %>%
-  janitor::clean_names()
+data_review <- read_csv("../../data/processed/data_systematic_review_of_irap_publications_with_authorship_annotations_and_name_standardizations.csv") %>%
+  janitor::clean_names() 
 
 ```
 
@@ -42,7 +42,7 @@ data_review %>%
   distinct(author, title) %>%
   summarize(n_publications = n()) %>%
   kable() %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE)
+  kable_classic(full_width = FALSE)
 
 ```
 
@@ -75,7 +75,7 @@ data_author_long %>%
   distinct(author) %>%
   summarize(total_n_author = n()) %>%
   kable() %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE)
+  kable_classic(full_width = FALSE)
 
 data_author_long %>%
   count(author) %>%
@@ -85,7 +85,7 @@ data_author_long %>%
             max_authorships = max(n)) %>%
   gather() %>%
   kable() %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE)
+  kable_classic(full_width = FALSE)
 
 ```
 
@@ -99,10 +99,10 @@ ranked_authors <- data_author_long %>%
   group_by(author) %>%
   summarize(n_papers = n()) %>%
   ungroup() %>%
-  mutate(proportion_all_papers = janitor::round_half_up(n_papers/total_papers, 2)) %>%
+  mutate(percent_all_papers = janitor::round_half_up(n_papers/total_papers*100, 0)) %>%
   arrange(desc(n_papers)) %>%
   rownames_to_column(var = "rank") %>%
-  select(rank, author, n_papers, proportion_all_papers) %>%
+  select(rank, author, n_papers, percent_all_papers) %>%
   mutate(BH_lab = ifelse(author %in% c("de Rose, Julio C.",
                                        "Bortoloti, Renato",
                                        "Drake, Chad E.",
@@ -111,7 +111,7 @@ ranked_authors <- data_author_long %>%
 ranked_authors %>%
   filter(n_papers >= 5) %>%
   kable() %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE)
+  kable_classic(full_width = FALSE)
 
 ```
 
@@ -124,7 +124,7 @@ data_review |>
             percent_publications_involving_authors_from_bh_lab = round_half_up(mean(coauthored_by_bh_or_students), 2)*100) %>%
   gather() %>%
   kable() %>%
-  kable_styling(bootstrap_options = c("striped", "hover", "condensed"), full_width = FALSE)
+  kable_classic(full_width = FALSE)
 
 ```
 
